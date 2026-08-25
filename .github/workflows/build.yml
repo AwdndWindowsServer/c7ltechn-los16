@@ -140,6 +140,12 @@ jobs:
           sed -i 's|^CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE=y|# CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE is not set|' arch/arm64/configs/lineageos_c7ltechn_defconfig
           sed -i 's|^# CONFIG_USB_CONFIGFS is not set|CONFIG_USB_CONFIGFS=y|' arch/arm64/configs/lineageos_c7ltechn_defconfig
           grep -n 'USB_G_ANDROID\|USB_CONFIGFS\|USB_ANDROID_SAMSUNG' arch/arm64/configs/lineageos_c7ltechn_defconfig || true
+          # 5) set_ncm_ready was exported by the Samsung g_android gadget (now
+          #    disabled); stub-remove its only external user
+          sed -i '/extern void set_ncm_ready/d' drivers/usb/notify/usb_notifier_qcom.c
+          sed -i '/set_ncm_ready(false)/d' drivers/usb/notify/usb_notifier_qcom.c
+          sed -i '/^    if(!enable)$/d' drivers/usb/notify/usb_notifier_qcom.c
+          grep -n 'set_ncm_ready' drivers/usb/notify/usb_notifier_qcom.c || echo "set_ncm_ready: removed"
           # 3) checkout sanity diagnostics
           for f in drivers/video/msm/msm_dba/msm_dba_internal.h                    drivers/soc/qcom/tracer_pkt_private.h                    drivers/usb/gadget/function/f_midi.c                    drivers/net/ethernet/msm/rndis_ipa_trace.h; do
             if [ -f "$f" ]; then echo "OK  $f"; else echo "MISS $f"; fi
@@ -277,6 +283,12 @@ jobs:
           sed -i 's|^CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE=y|# CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE is not set|' arch/arm64/configs/lineageos_c7ltechn_defconfig
           sed -i 's|^# CONFIG_USB_CONFIGFS is not set|CONFIG_USB_CONFIGFS=y|' arch/arm64/configs/lineageos_c7ltechn_defconfig
           grep -n 'USB_G_ANDROID\|USB_CONFIGFS\|USB_ANDROID_SAMSUNG' arch/arm64/configs/lineageos_c7ltechn_defconfig || true
+          # 5) set_ncm_ready was exported by the Samsung g_android gadget (now
+          #    disabled); stub-remove its only external user
+          sed -i '/extern void set_ncm_ready/d' drivers/usb/notify/usb_notifier_qcom.c
+          sed -i '/set_ncm_ready(false)/d' drivers/usb/notify/usb_notifier_qcom.c
+          sed -i '/^    if(!enable)$/d' drivers/usb/notify/usb_notifier_qcom.c
+          grep -n 'set_ncm_ready' drivers/usb/notify/usb_notifier_qcom.c || echo "set_ncm_ready: removed"
           # 3) checkout sanity diagnostics
           for f in drivers/video/msm/msm_dba/msm_dba_internal.h                    drivers/soc/qcom/tracer_pkt_private.h                    drivers/usb/gadget/function/f_midi.c                    drivers/net/ethernet/msm/rndis_ipa_trace.h; do
             if [ -f "$f" ]; then echo "OK  $f"; else echo "MISS $f"; fi
