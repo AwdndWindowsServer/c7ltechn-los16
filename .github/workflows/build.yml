@@ -243,6 +243,15 @@ jobs:
             repo sync -c -j8 --no-tags --no-clone-bundle --force-sync 2>&1 | tail -40
           }
           df -h /tmp
+      - name: Patch framework (libbluetooth_jni both-multilib)
+        run: |
+          f="$WORK/packages/apps/Bluetooth/jni/Android.bp"
+          if grep -q 'compile_multilib: "first"' "$f"; then
+            sed -i 's/compile_multilib: "first"/compile_multilib: "both"/' "$f"
+            echo "patched libbluetooth_jni -> both"
+          else
+            echo "no patch needed"
+          fi
       - name: ccache cache
         uses: actions/cache@v4
         with:
