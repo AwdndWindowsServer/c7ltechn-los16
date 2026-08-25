@@ -122,12 +122,11 @@ jobs:
           # 2) disable the USB MIDI pieces (android.c does '#include "f_midi.c"'
           #    under CONFIG_SND_RAWMIDI; f_midi.c needs u_f.h which is missing
           #    from the Galaxy-MSM8953 kernel mirrors on every branch)
-          for opt in SND_RAWMIDI USB_CONFIGFS_F_MIDI; do
-            if ! grep -q "$opt" arch/arm64/configs/lineageos_c7ltechn_defconfig; then
-              echo "# CONFIG_$opt is not set" >> arch/arm64/configs/lineageos_c7ltechn_defconfig
-              echo "defconfig: disabled $opt"
-            fi
-          done
+          sed -i 's|^CONFIG_SND_RAWMIDI=y|# CONFIG_SND_RAWMIDI is not set|' arch/arm64/configs/lineageos_c7ltechn_defconfig
+          if ! grep -q 'CONFIG_USB_CONFIGFS_F_MIDI' arch/arm64/configs/lineageos_c7ltechn_defconfig; then
+            echo '# CONFIG_USB_CONFIGFS_F_MIDI is not set' >> arch/arm64/configs/lineageos_c7ltechn_defconfig
+          fi
+          grep -n 'SND_RAWMIDI' arch/arm64/configs/lineageos_c7ltechn_defconfig
           # 3) msm_dba: '<msm_dba_internal.h>' is angle-quoted so it is not
           #    found (no -I for that dir); switch to quoted include
           if grep -rl '#include <msm_dba_internal.h>' drivers/video/msm/msm_dba/ 2>/dev/null; then
@@ -250,12 +249,11 @@ jobs:
           # 2) disable the USB MIDI pieces (android.c does '#include "f_midi.c"'
           #    under CONFIG_SND_RAWMIDI; f_midi.c needs u_f.h which is missing
           #    from the Galaxy-MSM8953 kernel mirrors on every branch)
-          for opt in SND_RAWMIDI USB_CONFIGFS_F_MIDI; do
-            if ! grep -q "$opt" arch/arm64/configs/lineageos_c7ltechn_defconfig; then
-              echo "# CONFIG_$opt is not set" >> arch/arm64/configs/lineageos_c7ltechn_defconfig
-              echo "defconfig: disabled $opt"
-            fi
-          done
+          sed -i 's|^CONFIG_SND_RAWMIDI=y|# CONFIG_SND_RAWMIDI is not set|' arch/arm64/configs/lineageos_c7ltechn_defconfig
+          if ! grep -q 'CONFIG_USB_CONFIGFS_F_MIDI' arch/arm64/configs/lineageos_c7ltechn_defconfig; then
+            echo '# CONFIG_USB_CONFIGFS_F_MIDI is not set' >> arch/arm64/configs/lineageos_c7ltechn_defconfig
+          fi
+          grep -n 'SND_RAWMIDI' arch/arm64/configs/lineageos_c7ltechn_defconfig
           # 3) msm_dba: '<msm_dba_internal.h>' is angle-quoted so it is not
           #    found (no -I for that dir); switch to quoted include
           if grep -rl '#include <msm_dba_internal.h>' drivers/video/msm/msm_dba/ 2>/dev/null; then
