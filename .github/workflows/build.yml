@@ -133,6 +133,12 @@ jobs:
             grep -rl '#include <msm_dba_internal.h>' drivers/video/msm/msm_dba/ |               xargs sed -i 's|#include <msm_dba_internal.h>|#include "msm_dba_internal.h"|'
             echo "msm_dba: angle include switched to quoted"
           fi
+          # 4) android.c directly #includes f_midi.c (which needs the missing
+          #    u_f.h) — drop that include unconditionally
+          if grep -q '#include "f_midi.c"' drivers/usb/gadget/android.c; then
+            sed -i '/#include "f_midi.c"/d' drivers/usb/gadget/android.c
+            echo "android.c: dropped #include f_midi.c"
+          fi
           # 3) checkout sanity diagnostics
           for f in drivers/video/msm/msm_dba/msm_dba_internal.h                    drivers/soc/qcom/tracer_pkt_private.h                    drivers/usb/gadget/function/f_midi.c                    drivers/net/ethernet/msm/rndis_ipa_trace.h; do
             if [ -f "$f" ]; then echo "OK  $f"; else echo "MISS $f"; fi
@@ -261,6 +267,12 @@ jobs:
           if grep -rl '#include <msm_dba_internal.h>' drivers/video/msm/msm_dba/ 2>/dev/null; then
             grep -rl '#include <msm_dba_internal.h>' drivers/video/msm/msm_dba/ |               xargs sed -i 's|#include <msm_dba_internal.h>|#include "msm_dba_internal.h"|'
             echo "msm_dba: angle include switched to quoted"
+          fi
+          # 4) android.c directly #includes f_midi.c (which needs the missing
+          #    u_f.h) — drop that include unconditionally
+          if grep -q '#include "f_midi.c"' drivers/usb/gadget/android.c; then
+            sed -i '/#include "f_midi.c"/d' drivers/usb/gadget/android.c
+            echo "android.c: dropped #include f_midi.c"
           fi
           # 3) checkout sanity diagnostics
           for f in drivers/video/msm/msm_dba/msm_dba_internal.h                    drivers/soc/qcom/tracer_pkt_private.h                    drivers/usb/gadget/function/f_midi.c                    drivers/net/ethernet/msm/rndis_ipa_trace.h; do
