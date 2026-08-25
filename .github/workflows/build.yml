@@ -119,11 +119,20 @@ jobs:
           if [ "$found" = "0" ]; then
             echo "no TRACE_INCLUDE_PATH patches needed"
           fi
-          # 2) disable the USB MIDI gadget function (f_midi.c needs u_f.h, missing
+          # 2) disable the USB MIDI pieces (android.c does '#include "f_midi.c"'
+          #    under CONFIG_SND_RAWMIDI; f_midi.c needs u_f.h which is missing
           #    from the Galaxy-MSM8953 kernel mirrors on every branch)
-          if ! grep -q 'CONFIG_USB_CONFIGFS_F_MIDI' arch/arm64/configs/lineageos_c7ltechn_defconfig; then
-            echo '# CONFIG_USB_CONFIGFS_F_MIDI is not set' >> arch/arm64/configs/lineageos_c7ltechn_defconfig
-            echo "defconfig: disabled USB_CONFIGFS_F_MIDI"
+          for opt in SND_RAWMIDI USB_CONFIGFS_F_MIDI; do
+            if ! grep -q "$opt" arch/arm64/configs/lineageos_c7ltechn_defconfig; then
+              echo "# CONFIG_$opt is not set" >> arch/arm64/configs/lineageos_c7ltechn_defconfig
+              echo "defconfig: disabled $opt"
+            fi
+          done
+          # 3) msm_dba: '<msm_dba_internal.h>' is angle-quoted so it is not
+          #    found (no -I for that dir); switch to quoted include
+          if grep -rl '#include <msm_dba_internal.h>' drivers/video/msm/msm_dba/ 2>/dev/null; then
+            grep -rl '#include <msm_dba_internal.h>' drivers/video/msm/msm_dba/ |               xargs sed -i 's|#include <msm_dba_internal.h>|#include "msm_dba_internal.h"|'
+            echo "msm_dba: angle include switched to quoted"
           fi
           # 3) checkout sanity diagnostics
           for f in drivers/video/msm/msm_dba/msm_dba_internal.h                    drivers/soc/qcom/tracer_pkt_private.h                    drivers/usb/gadget/function/f_midi.c                    drivers/net/ethernet/msm/rndis_ipa_trace.h; do
@@ -238,11 +247,20 @@ jobs:
           if [ "$found" = "0" ]; then
             echo "no TRACE_INCLUDE_PATH patches needed"
           fi
-          # 2) disable the USB MIDI gadget function (f_midi.c needs u_f.h, missing
+          # 2) disable the USB MIDI pieces (android.c does '#include "f_midi.c"'
+          #    under CONFIG_SND_RAWMIDI; f_midi.c needs u_f.h which is missing
           #    from the Galaxy-MSM8953 kernel mirrors on every branch)
-          if ! grep -q 'CONFIG_USB_CONFIGFS_F_MIDI' arch/arm64/configs/lineageos_c7ltechn_defconfig; then
-            echo '# CONFIG_USB_CONFIGFS_F_MIDI is not set' >> arch/arm64/configs/lineageos_c7ltechn_defconfig
-            echo "defconfig: disabled USB_CONFIGFS_F_MIDI"
+          for opt in SND_RAWMIDI USB_CONFIGFS_F_MIDI; do
+            if ! grep -q "$opt" arch/arm64/configs/lineageos_c7ltechn_defconfig; then
+              echo "# CONFIG_$opt is not set" >> arch/arm64/configs/lineageos_c7ltechn_defconfig
+              echo "defconfig: disabled $opt"
+            fi
+          done
+          # 3) msm_dba: '<msm_dba_internal.h>' is angle-quoted so it is not
+          #    found (no -I for that dir); switch to quoted include
+          if grep -rl '#include <msm_dba_internal.h>' drivers/video/msm/msm_dba/ 2>/dev/null; then
+            grep -rl '#include <msm_dba_internal.h>' drivers/video/msm/msm_dba/ |               xargs sed -i 's|#include <msm_dba_internal.h>|#include "msm_dba_internal.h"|'
+            echo "msm_dba: angle include switched to quoted"
           fi
           # 3) checkout sanity diagnostics
           for f in drivers/video/msm/msm_dba/msm_dba_internal.h                    drivers/soc/qcom/tracer_pkt_private.h                    drivers/usb/gadget/function/f_midi.c                    drivers/net/ethernet/msm/rndis_ipa_trace.h; do
