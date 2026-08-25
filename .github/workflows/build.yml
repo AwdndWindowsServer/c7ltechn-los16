@@ -51,7 +51,7 @@ jobs:
             lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z1-dev \
             libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig \
             python2 python2-dev python3 python3-dev openjdk-8-jdk libncurses5 \
-            lib32stdc++6 lib32gcc1 bc rsync ccache
+            lib32stdc++6 lib32gcc1 libc6-i386 lib32z1 bc rsync ccache
           ln -sf /usr/bin/python2 /usr/local/bin/python
           if ! curl -fsSL https://storage.googleapis.com/git-repo-downloads/repo -o /usr/local/bin/repo; then
             curl -fsSL https://raw.githubusercontent.com/Git-repo/repo/main/repo -o /usr/local/bin/repo || \
@@ -82,14 +82,18 @@ jobs:
             https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 \
             "$WORK/toolchain"
           chmod +x "$WORK/toolchain/bin/"* 2>/dev/null || true
-          ls -la "$WORK/toolchain/bin/" | head -8
+          # diagnostics (32-bit host binaries need libc6-i386/ld-linux.so.2)
+          file "$WORK/toolchain/bin/aarch64-linux-android-gcc"
+          ldd "$WORK/toolchain/bin/aarch64-linux-android-gcc" 2>&1 | head -5 || true
+          ls -la /lib/ld-linux* /lib32/ld-linux* /lib/x86_64-linux-gnu/ld-* 2>&1 || true
+          ls -la "$WORK/toolchain/bin/" | grep -E 'gcc|g\+\+| ld|cc$' | head
           test -x "$WORK/toolchain/bin/aarch64-linux-android-gcc"
       - name: Build kernel
         run: |
           cd "$WORK/kernel/samsung/msm8953"
           export PATH="$WORK/toolchain/bin:$PATH"
           which aarch64-linux-android-gcc
-          aarch64-linux-android-gcc --version | head -1
+          "$WORK/toolchain/bin/aarch64-linux-android-gcc" --version 2>&1 | head -1
           make ARCH=arm64 lineageos_c7ltechn_defconfig
           make ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- -j$(nproc) Image.gz-dtb 2>&1 | tail -30
           ls -la arch/arm64/boot/
@@ -131,7 +135,7 @@ jobs:
             lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z1-dev \
             libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig \
             python2 python2-dev python3 python3-dev openjdk-8-jdk libncurses5 \
-            lib32stdc++6 lib32gcc1 bc rsync ccache
+            lib32stdc++6 lib32gcc1 libc6-i386 lib32z1 bc rsync ccache
           ln -sf /usr/bin/python2 /usr/local/bin/python
           if ! curl -fsSL https://storage.googleapis.com/git-repo-downloads/repo -o /usr/local/bin/repo; then
             curl -fsSL https://raw.githubusercontent.com/Git-repo/repo/main/repo -o /usr/local/bin/repo || \
