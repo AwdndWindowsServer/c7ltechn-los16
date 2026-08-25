@@ -104,16 +104,18 @@ jobs:
           cd "$WORK"
           ls -la "$WORK/toolchain/bin/" | grep -E 'gcc|g\+\+|cc$|ld$' | head
           test -x "$WORK/toolchain/bin/aarch64-linux-android-gcc"
-      - name: Patch kernel (rndis_ipa_trace.h TRACE_INCLUDE_PATH)
+      - name: Patch kernel (fix TRACE_INCLUDE_PATH . in all *_trace.h)
         run: |
-          f="$WORK/kernel/samsung/msm8953/drivers/net/ethernet/msm/rndis_ipa_trace.h"
-          if grep -q 'TRACE_INCLUDE_PATH \.$' "$f"; then
-            sed -i 's|^#define TRACE_INCLUDE_PATH \.$|#define TRACE_INCLUDE_PATH ../../drivers/net/ethernet/msm|' "$f"
-            echo "patched TRACE_INCLUDE_PATH"
-          else
-            echo "no patch needed"
-          fi
-          grep -n 'TRACE_INCLUDE_PATH' "$f"
+          cd "$WORK/kernel/samsung/msm8953"
+          found=0
+          for f in $(grep -rl '^#define TRACE_INCLUDE_PATH \.$' --include='*_trace.h' . 2>/dev/null); do
+            dir=$(dirname "$f")
+            rel=$(python3 -c "import os; print(os.path.relpath('$dir', 'include/trace'))")
+            sed -i "s|^#define TRACE_INCLUDE_PATH \.$|#define TRACE_INCLUDE_PATH $rel|" "$f"
+            echo "patched $f -> $rel"
+            found=1
+          done
+          [ "$found" = "0" ] && echo "no TRACE_INCLUDE_PATH patches needed"
       - name: Build kernel
         shell: bash
         run: |
@@ -208,16 +210,18 @@ jobs:
           key: ccache-${{ github.ref_name }}-${{ github.sha }}
           restore-keys: |
             ccache-${{ github.ref_name }}
-      - name: Patch kernel (rndis_ipa_trace.h TRACE_INCLUDE_PATH)
+      - name: Patch kernel (fix TRACE_INCLUDE_PATH . in all *_trace.h)
         run: |
-          f="$WORK/kernel/samsung/msm8953/drivers/net/ethernet/msm/rndis_ipa_trace.h"
-          if grep -q 'TRACE_INCLUDE_PATH \.$' "$f"; then
-            sed -i 's|^#define TRACE_INCLUDE_PATH \.$|#define TRACE_INCLUDE_PATH ../../drivers/net/ethernet/msm|' "$f"
-            echo "patched TRACE_INCLUDE_PATH"
-          else
-            echo "no patch needed"
-          fi
-          grep -n 'TRACE_INCLUDE_PATH' "$f"
+          cd "$WORK/kernel/samsung/msm8953"
+          found=0
+          for f in $(grep -rl '^#define TRACE_INCLUDE_PATH \.$' --include='*_trace.h' . 2>/dev/null); do
+            dir=$(dirname "$f")
+            rel=$(python3 -c "import os; print(os.path.relpath('$dir', 'include/trace'))")
+            sed -i "s|^#define TRACE_INCLUDE_PATH \.$|#define TRACE_INCLUDE_PATH $rel|" "$f"
+            echo "patched $f -> $rel"
+            found=1
+          done
+          [ "$found" = "0" ] && echo "no TRACE_INCLUDE_PATH patches needed"
       - name: Build
         shell: bash
         run: |
