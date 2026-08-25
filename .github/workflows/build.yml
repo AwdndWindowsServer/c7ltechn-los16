@@ -146,6 +146,8 @@ jobs:
           which aarch64-linux-android-gcc
           "$WORK/toolchain/bin/aarch64-linux-android-gcc" --version 2>&1 | head -1
           make ARCH=arm64 lineageos_c7ltechn_defconfig
+          ./scripts/config --disable SND_RAWMIDI --disable USB_CONFIGFS_F_MIDI
+          grep -E 'SND_RAWMIDI|USB_CONFIGFS_F_MIDI|MSM_DBA' .config || true
           make ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- -j$(nproc) Image.gz-dtb > /tmp/kbuild.log 2>&1 || rc=$?
           tail -60 /tmp/kbuild.log
           ls -la arch/arm64/boot/
