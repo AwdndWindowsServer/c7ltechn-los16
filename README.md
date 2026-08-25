@@ -53,8 +53,8 @@ m bacon -j$(nproc)
 ## Status / milestones
 
 - [x] M1 — CI pipeline + device tree + full vendor blobs + standalone **kernel build job**
-- [ ] M1b — `Image.gz-dtb` kernel artifact green (in progress via CI)
-- [ ] M2 — ROM build green on a larger runner; boots to launcher (kernel/dtb, init, display bring-up)
+- [x] M1b — **`Image.gz-dtb` kernel artifact green** (built from `lineageos_c7ltechn_defconfig`; fixes: 4.9 wrapper scripts, TRACE_INCLUDE_PATH, USB gadget -> AOSP configfs, set_ncm_ready)
+- [ ] M2 — ROM build green (sync + device-tree validation in progress); boots to launcher (kernel/dtb, init, display bring-up)
 - [ ] M3 — RIL (calls/SMS/data, dual SIM), WiFi, Bluetooth, GPS
 - [ ] M4 — camera, fingerprint, NFC, audio tuning, sensors
 - [ ] M5 — SELinux enforcing, daily-usable hardening
