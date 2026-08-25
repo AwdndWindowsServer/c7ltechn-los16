@@ -115,7 +115,9 @@ jobs:
             echo "patched $f -> $rel"
             found=1
           done
-          [ "$found" = "0" ] && echo "no TRACE_INCLUDE_PATH patches needed"
+          if [ "$found" = "0" ]; then
+            echo "no TRACE_INCLUDE_PATH patches needed"
+          fi
       - name: Build kernel
         shell: bash
         run: |
@@ -221,7 +223,9 @@ jobs:
             echo "patched $f -> $rel"
             found=1
           done
-          [ "$found" = "0" ] && echo "no TRACE_INCLUDE_PATH patches needed"
+          if [ "$found" = "0" ]; then
+            echo "no TRACE_INCLUDE_PATH patches needed"
+          fi
       - name: Build
         shell: bash
         run: |
