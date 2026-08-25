@@ -104,11 +104,12 @@ jobs:
           cd "$WORK"
           ls -la "$WORK/toolchain/bin/" | grep -E 'gcc|g\+\+|cc$|ld$' | head
           test -x "$WORK/toolchain/bin/aarch64-linux-android-gcc"
-      - name: Patch kernel (fix TRACE_INCLUDE_PATH . in all *_trace.h)
+      - name: Patch kernel (trace includes + F_MIDI + sanity)
         run: |
           cd "$WORK/kernel/samsung/msm8953"
+          # 1) fix TRACE_INCLUDE_PATH . (broken in this repo branch) in ANY header
           found=0
-          for f in $(grep -rl '^#define TRACE_INCLUDE_PATH \.$' --include='*_trace.h' . 2>/dev/null); do
+          for f in $(grep -rl '^#define TRACE_INCLUDE_PATH \.$' --include='*.h' . 2>/dev/null); do
             dir=$(dirname "$f")
             rel=$(python3 -c "import os; print(os.path.relpath('$dir', 'include/trace'))")
             sed -i "s|^#define TRACE_INCLUDE_PATH \.$|#define TRACE_INCLUDE_PATH $rel|" "$f"
@@ -118,6 +119,16 @@ jobs:
           if [ "$found" = "0" ]; then
             echo "no TRACE_INCLUDE_PATH patches needed"
           fi
+          # 2) disable the USB MIDI gadget function (f_midi.c needs u_f.h, missing
+          #    from the Galaxy-MSM8953 kernel mirrors on every branch)
+          if ! grep -q 'CONFIG_USB_CONFIGFS_F_MIDI' arch/arm64/configs/lineageos_c7ltechn_defconfig; then
+            echo '# CONFIG_USB_CONFIGFS_F_MIDI is not set' >> arch/arm64/configs/lineageos_c7ltechn_defconfig
+            echo "defconfig: disabled USB_CONFIGFS_F_MIDI"
+          fi
+          # 3) checkout sanity diagnostics
+          for f in drivers/video/msm/msm_dba/msm_dba_internal.h                    drivers/soc/qcom/tracer_pkt_private.h                    drivers/usb/gadget/function/f_midi.c                    drivers/net/ethernet/msm/rndis_ipa_trace.h; do
+            if [ -f "$f" ]; then echo "OK  $f"; else echo "MISS $f"; fi
+          done
       - name: Build kernel
         shell: bash
         run: |
@@ -212,11 +223,12 @@ jobs:
           key: ccache-${{ github.ref_name }}-${{ github.sha }}
           restore-keys: |
             ccache-${{ github.ref_name }}
-      - name: Patch kernel (fix TRACE_INCLUDE_PATH . in all *_trace.h)
+      - name: Patch kernel (trace includes + F_MIDI + sanity)
         run: |
           cd "$WORK/kernel/samsung/msm8953"
+          # 1) fix TRACE_INCLUDE_PATH . (broken in this repo branch) in ANY header
           found=0
-          for f in $(grep -rl '^#define TRACE_INCLUDE_PATH \.$' --include='*_trace.h' . 2>/dev/null); do
+          for f in $(grep -rl '^#define TRACE_INCLUDE_PATH \.$' --include='*.h' . 2>/dev/null); do
             dir=$(dirname "$f")
             rel=$(python3 -c "import os; print(os.path.relpath('$dir', 'include/trace'))")
             sed -i "s|^#define TRACE_INCLUDE_PATH \.$|#define TRACE_INCLUDE_PATH $rel|" "$f"
@@ -226,6 +238,16 @@ jobs:
           if [ "$found" = "0" ]; then
             echo "no TRACE_INCLUDE_PATH patches needed"
           fi
+          # 2) disable the USB MIDI gadget function (f_midi.c needs u_f.h, missing
+          #    from the Galaxy-MSM8953 kernel mirrors on every branch)
+          if ! grep -q 'CONFIG_USB_CONFIGFS_F_MIDI' arch/arm64/configs/lineageos_c7ltechn_defconfig; then
+            echo '# CONFIG_USB_CONFIGFS_F_MIDI is not set' >> arch/arm64/configs/lineageos_c7ltechn_defconfig
+            echo "defconfig: disabled USB_CONFIGFS_F_MIDI"
+          fi
+          # 3) checkout sanity diagnostics
+          for f in drivers/video/msm/msm_dba/msm_dba_internal.h                    drivers/soc/qcom/tracer_pkt_private.h                    drivers/usb/gadget/function/f_midi.c                    drivers/net/ethernet/msm/rndis_ipa_trace.h; do
+            if [ -f "$f" ]; then echo "OK  $f"; else echo "MISS $f"; fi
+          done
       - name: Build
         shell: bash
         run: |
