@@ -3,9 +3,9 @@
   LineageOS 16.0 local manifest for Samsung Galaxy C7 (SM-C7000 / c7ltechn / MSM8953)
 
   Usage (in the CI workflow this is copied to .repo/local_manifests/):
-    repo init -u https://github.com/LineageOS/android.git -b lineage-16.0 --depth=1
+    repo init -u https://github.com/LineageOS/android.git -b lineage-16.0 -depth 1
     cp manifest/c7ltechn-16.0.xml .repo/local_manifests/
-    repo sync -c -j8 --no-tags
+    repo sync -c -j8 -no-tags
 -->
 <manifest>
 
