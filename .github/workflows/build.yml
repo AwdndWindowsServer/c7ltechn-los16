@@ -113,12 +113,12 @@ jobs:
           which aarch64-linux-android-gcc
           "$WORK/toolchain/bin/aarch64-linux-android-gcc" --version 2>&1 | head -1
           make ARCH=arm64 lineageos_c7ltechn_defconfig
-          make ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- -j$(nproc) Image.gz-dtb > /tmp/kbuild.log 2>&1
-          rc=$?
+          make ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- -j$(nproc) Image.gz-dtb > /tmp/kbuild.log 2>&1 || rc=$?
           tail -60 /tmp/kbuild.log
           ls -la arch/arm64/boot/
-          exit $rc
+          exit ${rc:-0}
       - name: Upload kernel
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: c7ltechn-kernel-${{ github.run_number }}
