@@ -238,7 +238,10 @@ jobs:
         run: |
           set -o pipefail
           cd "$WORK"
-          repo sync -c -j8 --no-tags --no-clone-bundle --force-sync 2>&1 | tail -40
+          repo sync -c -j8 --no-tags --no-clone-bundle --force-sync 2>&1 | tail -40 || {
+            echo "sync attempt 1 failed, retrying..."
+            repo sync -c -j8 --no-tags --no-clone-bundle --force-sync 2>&1 | tail -40
+          }
           df -h /tmp
       - name: ccache cache
         uses: actions/cache@v4
