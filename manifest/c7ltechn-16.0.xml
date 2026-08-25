@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  LineageOS 16.0 local manifest for Samsung Galaxy C7 (SM-C7000 / c7ltechn / MSM8953)
+
+  Usage (in the CI workflow this is copied to .repo/local_manifests/):
+    repo init -u https://github.com/LineageOS/android.git -b lineage-16.0 --depth=1
+    cp manifest/c7ltechn-16.0.xml .repo/local_manifests/
+    repo sync -c -j8 --no-tags
+-->
+<manifest>
+
+  <remote  name="github"
+           fetch="https://github.com" />
+
+  <remote  name="galaxy-msm8953"
+           fetch="https://github.com/Galaxy-MSM8953" />
+
+  <remote  name="c7ltechn"
+           fetch="https://github.com/AwdndWindowsServer" />
+
+  <!-- c7ltechn device tree + vendor tree (same monorepo, two checkout paths) -->
+  <project path="device/samsung/c7ltechn" name="c7ltechn-los16" remote="c7ltechn" revision="main" />
+  <project path="vendor/samsung/c7ltechn" name="c7ltechn-los16" remote="c7ltechn" revision="main" />
+
+  <!--
+    Kernel: LineageOS-16.0 adapted Samsung msm8953 kernel.
+    staging/lineage-16.0-chn contains lineageos_c7ltechn_defconfig + c7lte_chn_open_defconfig.
+  -->
+  <project path="kernel/samsung/msm8953" name="android_kernel_samsung_msm8953" remote="galaxy-msm8953" revision="staging/lineage-16.0-chn" />
+
+  <!--
+    If the build reports missing repos, add them here, e.g.:
+    <project path="device/qcom/common" name="LineageOS/android_device_qcom_common" revision="lineage-16.0" />
+    <project path="device/samsung/qcom-common" name="LineageOS/android_device_samsung_qcom-common" revision="lineage-16.0" />
+    <project path="hardware/samsung" name="LineageOS/android_hardware_samsung" revision="lineage-16.0" />
+    <project path="external/sony/boringssl-compat" name="LineageOS/android_external_sony_boringssl-compat" revision="lineage-16.0" />
+  -->
+
+</manifest>

@@ -1,0 +1,101 @@
+#
+# BoardConfig for Samsung Galaxy C7 (SM-C7000, c7ltechn) — LineageOS 16.0
+# Platform: Qualcomm MSM8953 (Snapdragon 625), arm64 + 32-bit compat
+# Kernel: 3.18 (lineageos_c7ltechn_defconfig from kernel/samsung/msm8953)
+# Stock: C7000ZCS3CRJ1 (Android 8.0.0, non-Treble, no vendor partition)
+#
+
+DEVICE_PATH := device/samsung/c7ltechn
+
+# Asserts
+TARGET_OTA_ASSERT_DEVICE := c7ltechn,SM-C7000,C7000
+
+# Platform
+TARGET_BOARD_PLATFORM := msm8953
+TARGET_BOARD_PLATFORM_GPU := qcom-adreno506
+TARGET_BOOTLOADER_BOARD_NAME := MSM8953
+TARGET_NO_BOOTLOADER := true
+TARGET_PLATFORM_DEVICE_BASE := /devices/soc/
+BOARD_USES_QCOM_HARDWARE := true
+BOARD_USES_QC_TIME_SERVICES := true
+
+# Architecture
+TARGET_ARCH := arm64
+TARGET_ARCH_VARIANT := armv8-a
+TARGET_CPU_ABI := arm64-v8a
+TARGET_CPU_ABI2 :=
+TARGET_CPU_VARIANT := cortex-a53
+TARGET_2ND_ARCH := arm
+TARGET_2ND_ARCH_VARIANT := armv8-a
+TARGET_2ND_CPU_ABI := armeabi-v7a
+TARGET_2ND_CPU_ABI2 := armeabi
+TARGET_2ND_CPU_VARIANT := cortex-a53
+TARGET_USES_64_BIT_BINDER := true
+
+# Kernel
+TARGET_KERNEL_ARCH := arm64
+TARGET_KERNEL_SOURCE := kernel/samsung/msm8953
+TARGET_KERNEL_CONFIG := lineageos_c7ltechn_defconfig
+TARGET_KERNEL_CROSS_COMPILE_PREFIX := aarch64-linux-android-
+BOARD_KERNEL_IMAGE_NAME := Image.gz-dtb
+BOARD_KERNEL_CMDLINE := console=null androidboot.hardware=qcom msm_rtb.filter=0x237 ehci-hcd.park=3 androidboot.bootdevice=7824900.sdhci lpm_levels.sleep_disabled=1 androidboot.selinux=permissive
+BOARD_KERNEL_BASE := 0x80000000
+BOARD_KERNEL_PAGESIZE := 2048
+BOARD_MKBOOTIMG_ARGS := --ramdisk_offset 0x02000000 --tags_offset 0x01e00000 --board SRPPI22A000RU
+BOARD_CUSTOM_BOOTIMG := true
+BOARD_CUSTOM_BOOTIMG_MK := $(DEVICE_PATH)/mkbootimg.mk
+
+# Partitions (from stock PIT; verified against the omni-9.0 c7ltechn tree)
+BOARD_BOOTIMAGE_PARTITION_SIZE := 33554432
+BOARD_RECOVERYIMAGE_PARTITION_SIZE := 33554432
+BOARD_SYSTEMIMAGE_PARTITION_SIZE := 3674210304
+BOARD_PERSISTIMAGE_PARTITION_SIZE := 33554432
+BOARD_CACHEIMAGE_PARTITION_SIZE := 314572800
+BOARD_USERDATAIMAGE_PARTITION_SIZE := 11374931968
+BOARD_FLASH_BLOCK_SIZE := 131072
+BOARD_VOLD_EMMC_SHARES_DEV_MAJOR := true
+
+# No separate vendor partition (stock: /vendor -> /system/vendor, non-Treble)
+BOARD_VENDORIMAGE_PARTITION_SIZE := 0
+
+# Filesystem
+TARGET_USERIMAGES_USE_EXT4 := true
+TARGET_USERIMAGES_USE_F2FS := true
+BOARD_CACHEIMAGE_FILE_SYSTEM_TYPE := ext4
+TARGET_RECOVERY_FSTAB := $(DEVICE_PATH)/rootdir/recovery.fstab
+
+# Bluetooth
+BOARD_HAVE_BLUETOOTH := true
+BOARD_HAVE_BLUETOOTH_QCOM := true
+BLUETOOTH_HCI_USE_MCT := true
+
+# Charger
+BOARD_CHARGER_ENABLE_SUSPEND := true
+BOARD_CHARGER_SHOW_PERCENTAGE := true
+
+# Display / GPU
+BOARD_USES_ADRENO := true
+TARGET_USES_ION := true
+TARGET_USES_OVERLAY := true
+USE_OPENGL_RENDERER := true
+OVERRIDE_RS_DRIVER := libRSDriver_adreno.so
+MAX_VIRTUAL_DISPLAY_DIMENSION := 4096
+TARGET_FORCE_HWC_FOR_VIRTUAL_DISPLAYS := true
+TARGET_USES_HWC2 := true
+TARGET_USES_C2D_COMPOSITION := true
+TARGET_USES_GRALLOC1 := true
+NUM_FRAMEBUFFER_SURFACE_BUFFERS := 3
+
+# Audio (blobs-only HAL; runtime configs shipped as vendor blobs)
+BOARD_USES_GENERIC_AUDIO := true
+TARGET_USES_QCOM_MM_AUDIO := true
+AUDIO_FEATURE_ENABLED_FM := true
+BOARD_HAVE_QCOM_FM := true
+
+# RIL
+TARGET_HAS_DUALSIMS := true
+
+# Recovery
+TARGET_NO_RADIOIMAGE := true
+BOARD_HAS_NO_SELECT_BUTTON := true
+BOARD_SUPPRESS_SECURE_ERASE := true

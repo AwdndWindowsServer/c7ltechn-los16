@@ -1,0 +1,128 @@
+name: build
+
+on:
+  workflow_dispatch:
+    inputs:
+      runner:
+        description: 'Runner label. Full LOS16 builds need disk > 60GB and RAM >= 16GB.
+          On GitHub Larger Runners use e.g. ubuntu-22.04-16core (paid/enabled).
+          ubuntu-latest (standard 7GB/14GB) will likely run out of disk during sync.'
+        required: false
+        default: 'ubuntu-latest'
+      build_target:
+        description: 'Build target'
+        required: false
+        default: 'bacon'
+  push:
+    branches: [ 'main' ]
+    paths:
+      - 'device/**'
+      - 'vendor/**'
+      - 'manifest/**'
+      - 'tools/**'
+      - '.github/workflows/build.yml'
+
+jobs:
+  build:
+    runs-on: ${{ github.event.inputs.runner || 'ubuntu-latest' }}
+    container:
+      image: ubuntu:20.04
+    timeout-minutes: 360
+    env:
+      WORK: /tmp/android
+      CCACHE_DIR: /tmp/ccache
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: manifest-repo
+
+      - name: Install build dependencies
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            git-core gnupg flex bison gperf build-essential zip curl \
+            zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 \
+            lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z1-dev \
+            libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig \
+            python2 python2-dev openjdk-8-jdk libncurses5 \
+            lib32stdc++6 lib32gcc1 bc rsync ccache
+          ln -sf /usr/bin/python2 /usr/local/bin/python
+          curl -s https://storage.googleapis.com/git-repo-downloads/repo -o /usr/local/bin/repo
+          chmod +x /usr/local/bin/repo
+          repo --version
+
+      - name: Best-effort swap (needed on standard runners)
+        run: |
+          free -h
+          if fallocate -l 8G /tmp/swapfile 2>/dev/null; then
+            chmod 600 /tmp/swapfile
+            mkswap /tmp/swapfile >/dev/null
+            swapon /tmp/swapfile
+            echo "swap enabled"
+          else
+            echo "could not allocate swap (disk too small?)"
+          fi || true
+          df -h /tmp
+
+      - name: Initialize repo (LineageOS 16.0 + local manifest)
+        run: |
+          git config --global user.name "c7ltechn-bot"
+          git config --global user.email "c7ltechn-bot@users.noreply.github.com"
+          mkdir -p "$WORK"
+          cd "$WORK"
+          repo init -u https://github.com/LineageOS/android.git -b lineage-16.0 --depth=1
+          mkdir -p .repo/local_manifests
+          cp "$GITHUB_WORKSPACE/manifest-repo/manifest/c7ltechn-16.0.xml" .repo/local_manifests/
+
+      - name: Sync sources
+        run: |
+          cd "$WORK"
+          repo sync -c -j8 --no-tags --no-clone-bundle --force-sync 2>&1 | tail -40
+          df -h /tmp
+
+      - name: ccache cache
+        uses: actions/cache@v4
+        with:
+          path: /tmp/ccache
+          key: ccache-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: |
+            ccache-${{ github.ref_name }}
+
+      - name: Build
+        run: |
+          cd "$WORK"
+          export USE_CCACHE=1
+          export CCACHE_EXEC=/usr/bin/ccache
+          export CCACHE_DIR=/tmp/ccache
+          ccache -M 20G
+          source build/envsetup.sh
+          lunch lineage_c7ltechn-userdebug
+          m "${{ github.event.inputs.build_target || 'bacon' }}" -j$(nproc) 2>&1 | tee /tmp/build.log | tail -60
+        shell: bash
+
+      - name: Collect artifacts
+        run: |
+          cd "$WORK/out/target/product/c7ltechn"
+          sha256sum boot.img recovery.img system.img 2>/dev/null > SHA256SUMS || true
+          ls -la
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: c7ltechn-los16-${{ github.run_number }}
+          path: |
+            /tmp/android/out/target/product/c7ltechn/boot.img
+            /tmp/android/out/target/product/c7ltechn/recovery.img
+            /tmp/android/out/target/product/c7ltechn/system.img
+            /tmp/android/out/target/product/c7ltechn/SHA256SUMS
+          if-no-files-found: warn
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log-${{ github.run_number }}
+          path: /tmp/build.log
+          if-no-files-found: warn
