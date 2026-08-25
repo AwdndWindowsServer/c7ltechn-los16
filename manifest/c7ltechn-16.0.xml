@@ -9,9 +9,6 @@
 -->
 <manifest>
 
-  <remote  name="github"
-           fetch="https://github.com" />
-
   <remote  name="galaxy-msm8953"
            fetch="https://github.com/Galaxy-MSM8953" />
 
