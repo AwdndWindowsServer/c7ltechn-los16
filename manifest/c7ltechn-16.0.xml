@@ -35,10 +35,9 @@
   <remove-project name="platform/prebuilts/gdb/darwin-x86" />
   <remove-project name="platform/prebuilts/go/darwin-x86" />
   <remove-project name="platform/prebuilts/python/darwin-x86/2.7.5" />
-  <remove-project name="platform/prebuilts/gradle-plugin" />
+  <!-- NOTE: platform/prebuilts/gradle-plugin, platform/prebuilts/maven_repo/android
+       and platform/sdk are REQUIRED by LOS16's metalava/soong — do not remove. -->
   <remove-project name="platform/prebuilts/libs/libedit" />
-  <remove-project name="platform/prebuilts/maven_repo/android" />
-  <remove-project name="platform/sdk" />
   <!-- webview prebuilts fail to check out (pinned-SHA + shallow clone on
        submodule-style repos); all four variants removed. The build may need
        WebView re-added later (e.g. building it or shipping a prebuilt apk). -->
