@@ -133,12 +133,13 @@ jobs:
             grep -rl '#include <msm_dba_internal.h>' drivers/video/msm/msm_dba/ |               xargs sed -i 's|#include <msm_dba_internal.h>|#include "msm_dba_internal.h"|'
             echo "msm_dba: angle include switched to quoted"
           fi
-          # 4) android.c directly #includes f_midi.c (which needs the missing
-          #    u_f.h) — drop that include unconditionally
-          if grep -q '#include "f_midi.c"' drivers/usb/gadget/android.c; then
-            sed -i '/#include "f_midi.c"/d' drivers/usb/gadget/android.c
-            echo "android.c: dropped #include f_midi.c"
-          fi
+          # 4) Switch USB gadget: Samsung's legacy g_android (+ its function
+          #    sources, several of which are broken in this mirror) is replaced
+          #    by the AOSP configfs gadget, which LOS16's usb HAL expects.
+          sed -i 's|^CONFIG_USB_G_ANDROID=y|# CONFIG_USB_G_ANDROID is not set|' arch/arm64/configs/lineageos_c7ltechn_defconfig
+          sed -i 's|^CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE=y|# CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE is not set|' arch/arm64/configs/lineageos_c7ltechn_defconfig
+          sed -i 's|^# CONFIG_USB_CONFIGFS is not set|CONFIG_USB_CONFIGFS=y|' arch/arm64/configs/lineageos_c7ltechn_defconfig
+          grep -n 'USB_G_ANDROID\|USB_CONFIGFS\|USB_ANDROID_SAMSUNG' arch/arm64/configs/lineageos_c7ltechn_defconfig || true
           # 3) checkout sanity diagnostics
           for f in drivers/video/msm/msm_dba/msm_dba_internal.h                    drivers/soc/qcom/tracer_pkt_private.h                    drivers/usb/gadget/function/f_midi.c                    drivers/net/ethernet/msm/rndis_ipa_trace.h; do
             if [ -f "$f" ]; then echo "OK  $f"; else echo "MISS $f"; fi
@@ -152,8 +153,9 @@ jobs:
           which aarch64-linux-android-gcc
           "$WORK/toolchain/bin/aarch64-linux-android-gcc" --version 2>&1 | head -1
           make ARCH=arm64 lineageos_c7ltechn_defconfig
-          ./scripts/config --disable SND_RAWMIDI --disable USB_CONFIGFS_F_MIDI
-          grep -E 'SND_RAWMIDI|USB_CONFIGFS_F_MIDI|MSM_DBA' .config || true
+          ./scripts/config --disable SND_RAWMIDI --disable USB_G_ANDROID \
+            --disable USB_ANDROID_SAMSUNG_COMPOSITE --enable USB_CONFIGFS
+          grep -E 'SND_RAWMIDI|USB_G_ANDROID|USB_CONFIGFS|MSM_DBA' .config || true
           make ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- -j$(nproc) Image.gz-dtb > /tmp/kbuild.log 2>&1 || rc=$?
           tail -60 /tmp/kbuild.log
           ls -la arch/arm64/boot/
@@ -268,12 +270,13 @@ jobs:
             grep -rl '#include <msm_dba_internal.h>' drivers/video/msm/msm_dba/ |               xargs sed -i 's|#include <msm_dba_internal.h>|#include "msm_dba_internal.h"|'
             echo "msm_dba: angle include switched to quoted"
           fi
-          # 4) android.c directly #includes f_midi.c (which needs the missing
-          #    u_f.h) — drop that include unconditionally
-          if grep -q '#include "f_midi.c"' drivers/usb/gadget/android.c; then
-            sed -i '/#include "f_midi.c"/d' drivers/usb/gadget/android.c
-            echo "android.c: dropped #include f_midi.c"
-          fi
+          # 4) Switch USB gadget: Samsung's legacy g_android (+ its function
+          #    sources, several of which are broken in this mirror) is replaced
+          #    by the AOSP configfs gadget, which LOS16's usb HAL expects.
+          sed -i 's|^CONFIG_USB_G_ANDROID=y|# CONFIG_USB_G_ANDROID is not set|' arch/arm64/configs/lineageos_c7ltechn_defconfig
+          sed -i 's|^CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE=y|# CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE is not set|' arch/arm64/configs/lineageos_c7ltechn_defconfig
+          sed -i 's|^# CONFIG_USB_CONFIGFS is not set|CONFIG_USB_CONFIGFS=y|' arch/arm64/configs/lineageos_c7ltechn_defconfig
+          grep -n 'USB_G_ANDROID\|USB_CONFIGFS\|USB_ANDROID_SAMSUNG' arch/arm64/configs/lineageos_c7ltechn_defconfig || true
           # 3) checkout sanity diagnostics
           for f in drivers/video/msm/msm_dba/msm_dba_internal.h                    drivers/soc/qcom/tracer_pkt_private.h                    drivers/usb/gadget/function/f_midi.c                    drivers/net/ethernet/msm/rndis_ipa_trace.h; do
             if [ -f "$f" ]; then echo "OK  $f"; else echo "MISS $f"; fi
