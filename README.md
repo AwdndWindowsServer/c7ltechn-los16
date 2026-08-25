@@ -12,11 +12,14 @@ built in CI on **GitHub Actions**.
 | Path | Contents |
 |---|---|
 | `device/samsung/c7ltechn/` | LineageOS 16.0 device tree (BoardConfig, device.mk, system.prop, rootdir, vintf manifests, mkbootimg) |
-| `vendor/samsung/c7ltechn/` | Proprietary blobs extracted from stock firmware (441 MB) + generated `c7ltechn-vendor.mk` |
 | `manifest/c7ltechn-16.0.xml` | Local manifest for `repo init` / CI |
-| `tools/gen-vendor-mk.py` | Regenerates `c7ltechn-vendor.mk` from the blob tree |
+| `tools/gen-vendor-mk.py` | Regenerates the vendor makefile from the blob tree |
 | `tools/system-blobs.txt` | Curated list of system-side proprietary blobs |
 | `.github/workflows/build.yml` | CI: sync LOS 16.0 + build + upload artifacts |
+
+Vendor blobs live in a separate repository:
+[`AwdndWindowsServer/c7ltechn-vendor`](https://github.com/AwdndWindowsServer/c7ltechn-vendor)
+(`vendor/samsung/c7ltechn/` — proprietary blobs + generated `c7ltechn-vendor.mk`).
 
 ## How to build
 

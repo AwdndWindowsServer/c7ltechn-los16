@@ -113,8 +113,11 @@ jobs:
           which aarch64-linux-android-gcc
           "$WORK/toolchain/bin/aarch64-linux-android-gcc" --version 2>&1 | head -1
           make ARCH=arm64 lineageos_c7ltechn_defconfig
-          make ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- -j$(nproc) Image.gz-dtb 2>&1 | tail -30
+          make ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- -j$(nproc) Image.gz-dtb > /tmp/kbuild.log 2>&1
+          rc=$?
+          tail -60 /tmp/kbuild.log
           ls -la arch/arm64/boot/
+          exit $rc
       - name: Upload kernel
         uses: actions/upload-artifact@v4
         with:
@@ -122,7 +125,8 @@ jobs:
           path: |
             /tmp/android/kernel/samsung/msm8953/arch/arm64/boot/Image.gz-dtb
             /tmp/android/kernel/samsung/msm8953/.config
-          if-no-files-found: error
+            /tmp/kbuild.log
+          if-no-files-found: warn
 
   rom-build:
     name: ROM (boot+recovery+system)

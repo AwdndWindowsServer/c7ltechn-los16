@@ -43,9 +43,10 @@
   <remove-project name="LineageOS/android_external_chromium-webview_prebuilt_x86" />
   <remove-project name="LineageOS/android_external_chromium-webview_prebuilt_x86_64" />
 
-  <!-- c7ltechn device tree + vendor tree (same monorepo, two checkout paths) -->
+  <!-- c7ltechn device tree + vendor tree (separate repos — the monorepo
+       double-checkout made the product name ambiguous to the build) -->
   <project path="device/samsung/c7ltechn" name="c7ltechn-los16" remote="c7ltechn" revision="main" />
-  <project path="vendor/samsung/c7ltechn" name="c7ltechn-los16" remote="c7ltechn" revision="main" />
+  <project path="vendor/samsung/c7ltechn" name="c7ltechn-vendor" remote="c7ltechn" revision="main" />
 
   <!--
     Kernel: LineageOS-16.0 adapted Samsung msm8953 kernel.
