@@ -41,6 +41,8 @@ jobs:
         run: |
           export DEBIAN_FRONTEND=noninteractive
           apt-get update
+          # pre-create java keystore path (focal ca-certificates-java postinst warning)
+          mkdir -p /etc/ssl/certs/java
           apt-get install -y --no-install-recommends \
             git-core gnupg flex bison gperf build-essential zip curl \
             zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 \
@@ -49,8 +51,12 @@ jobs:
             python2 python2-dev openjdk-8-jdk libncurses5 \
             lib32stdc++6 lib32gcc1 bc rsync ccache
           ln -sf /usr/bin/python2 /usr/local/bin/python
-          curl -s https://storage.googleapis.com/git-repo-downloads/repo -o /usr/local/bin/repo
+          # Install the repo tool (GitHub mirror first, Google storage fallback)
+          if ! curl -fsSL https://raw.githubusercontent.com/Git-repo/repo/stable/repo -o /usr/local/bin/repo; then
+            curl -fsSL https://storage.googleapis.com/git-repo-downloads/repo -o /usr/local/bin/repo
+          fi
           chmod +x /usr/local/bin/repo
+          test -s /usr/local/bin/repo
           repo --version
 
       - name: Best-effort swap (needed on standard runners)
