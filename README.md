@@ -20,6 +20,21 @@ built in CI on **GitHub Actions**.
 
 ## How to build
 
+### On GitHub Actions (recommended)
+
+Push to this repo, or use `workflow_dispatch`. Two jobs:
+
+| Job | Runner | What it does |
+|---|---|---|
+| `kernel-build` | standard (`ubuntu-latest`) | Syncs only `kernel/samsung/msm8953` + the aarch64-4.9 toolchain (~1.5 GB) and builds `Image.gz-dtb` from `lineageos_c7ltechn_defconfig`. Uploads the kernel as an artifact. **Runs on every push.** |
+| `rom-build` | **larger runner only** | Full `m bacon` (boot/recovery/system). **Requires a GitHub Larger Runner label** via the `runner` input (e.g. `ubuntu-22.04-16core`) — a full LOS16 build needs ~60 GB disk and ~16 GB RAM, which standard runners do not have. **Free-plan accounts cannot use larger runners; a GitHub Pro/Team plan or paid org is required.** |
+
+Run the ROM build later with:
+
+```bash
+gh workflow run build -R AwdndWindowsServer/c7ltechn-los16 -f runner=ubuntu-22.04-16core
+```
+
 ### Locally
 
 ```bash
@@ -32,21 +47,11 @@ lunch lineage_c7ltechn-userdebug
 m bacon -j$(nproc)
 ```
 
-### On GitHub Actions
-
-Push to this repo → workflow `build` (manual `workflow_dispatch` or on push).
-**Important:** a full LOS 16 build needs ~60 GB disk and ~16 GB RAM.
-
-- `ubuntu-latest` (7 GB RAM / 14 GB disk) will almost certainly run out of disk during `repo sync`.
-- Use a **GitHub Larger Runner** for real builds, e.g. `ubuntu-22.04-16core`
-  (set via the `runner` input of the workflow).
-
-Artifacts: `boot.img`, `recovery.img`, `system.img` + SHA256SUMS.
-
 ## Status / milestones
 
-- [x] M1 — CI pipeline + device tree + full vendor blobs (target: **compiles**)
-- [ ] M2 — boots to launcher (kernel/dtb, init, display bring-up)
+- [x] M1 — CI pipeline + device tree + full vendor blobs + standalone **kernel build job**
+- [ ] M1b — `Image.gz-dtb` kernel artifact green (in progress via CI)
+- [ ] M2 — ROM build green on a larger runner; boots to launcher (kernel/dtb, init, display bring-up)
 - [ ] M3 — RIL (calls/SMS/data, dual SIM), WiFi, Bluetooth, GPS
 - [ ] M4 — camera, fingerprint, NFC, audio tuning, sensors
 - [ ] M5 — SELinux enforcing, daily-usable hardening

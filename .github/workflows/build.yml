@@ -4,10 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       runner:
-        description: 'Runner for the full ROM build. Full LOS16 builds need ~60GB
-          disk + 16GB RAM. On GitHub Larger Runners use e.g. ubuntu-22.04-16core
-          (requires GitHub Pro/Team or a paid org; free accounts cannot use them).
-          Leave empty to skip the ROM job (kernel job still runs).'
+        description: 'Optional runner label override for the ROM job (e.g.
+          ubuntu-22.04-16core on GitHub Larger Runners). Default: ubuntu-latest.'
         required: false
         default: ''
       build_target:
@@ -67,17 +65,23 @@ jobs:
           mkdir -p .repo/local_manifests
           cp "$GITHUB_WORKSPACE/manifest-repo/manifest/c7ltechn-16.0.xml" .repo/local_manifests/
           python3 -c "import xml.dom.minidom,sys; xml.dom.minidom.parse('.repo/local_manifests/c7ltechn-16.0.xml'); print('manifest XML OK')"
-      - name: Sync kernel + toolchain only
+      - name: Sync kernel only
         run: |
           cd "$WORK"
-          repo sync -c -j8 --no-tags --no-clone-bundle \
-            kernel/samsung/msm8953 \
-            prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9
+          repo sync -c -j8 --no-tags --no-clone-bundle kernel/samsung/msm8953
           df -h /tmp
+      - name: Fetch aarch64 gcc 4.9 toolchain (AOSP gitiles archive)
+        run: |
+          mkdir -p "$WORK/toolchain"
+          curl -fsSL "https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/android-9.0.0_r46.tar.gz" \
+            | tar xz -C "$WORK/toolchain"
+          ls "$WORK/toolchain/bin" | head -5
+          test -x "$WORK/toolchain/bin/aarch64-linux-android-gcc"
       - name: Build kernel
         run: |
           cd "$WORK/kernel/samsung/msm8953"
-          export PATH="$WORK/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin:$PATH"
+          export PATH="$WORK/toolchain/bin:$PATH"
+          which aarch64-linux-android-gcc
           make ARCH=arm64 lineageos_c7ltechn_defconfig
           make ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- -j$(nproc) Image.gz-dtb 2>&1 | tail -30
           ls -la arch/arm64/boot/
@@ -92,10 +96,11 @@ jobs:
 
   rom-build:
     name: ROM (boot+recovery+system)
-    # Only runs when a larger runner label is supplied via workflow_dispatch;
-    # standard runners do not have enough disk/RAM for a full LOS16 build.
-    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.runner != '' && github.event.inputs.runner != 'ubuntu-latest' }}
-    runs-on: ${{ github.event.inputs.runner }}
+    # Runs on every trigger. Standard runners (7GB RAM / ~145GB disk) can now
+    # hold a LOS16 tree; RAM is tight so a swap file + low parallelism is used.
+    # A GitHub Larger Runner (e.g. ubuntu-22.04-16core) is recommended for fast,
+    # reliable full builds — pass it via the 'runner' input.
+    runs-on: ${{ github.event.inputs.runner || 'ubuntu-latest' }}
     container:
       image: ubuntu:20.04
     timeout-minutes: 360
