@@ -1,5 +1,10 @@
 name: build
 
+# Cancel superseded runs (a new push aborts the previous build)
+concurrency:
+  group: c7ltechn-build-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   workflow_dispatch:
     inputs:
@@ -70,18 +75,21 @@ jobs:
           cd "$WORK"
           repo sync -c -j8 --no-tags --no-clone-bundle kernel/samsung/msm8953
           df -h /tmp
-      - name: Fetch aarch64 gcc 4.9 toolchain (AOSP gitiles archive)
+      - name: Fetch aarch64 gcc 4.9 toolchain (git clone preserves symlinks)
         run: |
           mkdir -p "$WORK/toolchain"
-          curl -fsSL "https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/android-9.0.0_r46.tar.gz" \
-            | tar xz -C "$WORK/toolchain"
-          ls "$WORK/toolchain/bin" | head -5
+          git clone --depth 1 -b android-9.0.0_r46 \
+            https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 \
+            "$WORK/toolchain"
+          chmod +x "$WORK/toolchain/bin/"* 2>/dev/null || true
+          ls -la "$WORK/toolchain/bin/" | head -8
           test -x "$WORK/toolchain/bin/aarch64-linux-android-gcc"
       - name: Build kernel
         run: |
           cd "$WORK/kernel/samsung/msm8953"
           export PATH="$WORK/toolchain/bin:$PATH"
           which aarch64-linux-android-gcc
+          aarch64-linux-android-gcc --version | head -1
           make ARCH=arm64 lineageos_c7ltechn_defconfig
           make ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- -j$(nproc) Image.gz-dtb 2>&1 | tail -30
           ls -la arch/arm64/boot/
