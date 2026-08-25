@@ -78,18 +78,36 @@ jobs:
       - name: Fetch aarch64 gcc 4.9 toolchain (git clone preserves symlinks)
         run: |
           mkdir -p "$WORK/toolchain"
-          git clone --depth 1 -b android-9.0.0_r46 \
-            https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 \
+          git clone --depth 1 -b lineage-17.1 \
+            https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9 \
             "$WORK/toolchain"
           chmod +x "$WORK/toolchain/bin/"* 2>/dev/null || true
-          # diagnostics (32-bit host binaries need libc6-i386/ld-linux.so.2)
-          file "$WORK/toolchain/bin/aarch64-linux-android-gcc" || true
-          ldd "$WORK/toolchain/bin/aarch64-linux-android-gcc" 2>&1 | head -5 || true
-          ls -la /lib/ld-linux* /lib32/ld-linux* /lib/x86_64-linux-gnu/ld-* 2>&1 || true
-          ls -la "$WORK/toolchain/bin/" | grep -E 'gcc|g\+\+| ld|cc$' | head || true
+          # The 4.9-era toolchains ship ~1.7KB wrapper scripts named like the
+          # real compiler (aarch64-linux-android-gcc) which fail to exec in the
+          # container; the real ELF binaries are gcc-4.9.x / real-<name>.
+          # Replace small wrapper files with symlinks to the real binaries.
+          cd "$WORK/toolchain/bin"
+          for n in *; do
+            [ -L "$n" ] && continue
+            [ -f "$n" ] || continue
+            sz=$(stat -c%s "$n")
+            if [ "$sz" -lt 20000 ]; then
+              for cand in "real-$n" "$n-4.9.x" "$n-4.9"; do
+                if [ -f "$cand" ] && [ "$(stat -c%s "$cand")" -gt 20000 ]; then
+                  echo "repair: $n -> $cand"
+                  ln -sfn "$cand" "$n"
+                  break
+                fi
+              done
+            fi
+          done
+          cd "$WORK"
+          ls -la "$WORK/toolchain/bin/" | grep -E 'gcc|g\+\+|cc$|ld$' | head
           test -x "$WORK/toolchain/bin/aarch64-linux-android-gcc"
       - name: Build kernel
+        shell: bash
         run: |
+          set -o pipefail
           cd "$WORK/kernel/samsung/msm8953"
           export PATH="$WORK/toolchain/bin:$PATH"
           which aarch64-linux-android-gcc
@@ -163,7 +181,9 @@ jobs:
           cp "$GITHUB_WORKSPACE/manifest-repo/manifest/c7ltechn-16.0.xml" .repo/local_manifests/
           python3 -c "import xml.dom.minidom,sys; xml.dom.minidom.parse('.repo/local_manifests/c7ltechn-16.0.xml'); print('manifest XML OK')"
       - name: Sync sources
+        shell: bash
         run: |
+          set -o pipefail
           cd "$WORK"
           repo sync -c -j8 --no-tags --no-clone-bundle --force-sync 2>&1 | tail -40
           df -h /tmp
@@ -175,6 +195,7 @@ jobs:
           restore-keys: |
             ccache-${{ github.ref_name }}
       - name: Build
+        shell: bash
         run: |
           cd "$WORK"
           export USE_CCACHE=1

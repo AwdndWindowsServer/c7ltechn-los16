@@ -39,6 +39,9 @@
   <remove-project name="platform/prebuilts/libs/libedit" />
   <remove-project name="platform/prebuilts/maven_repo/android" />
   <remove-project name="platform/sdk" />
+  <!-- webview prebuilts: x86/x86_64 fail to check out (submodule-style repos) and are not needed for arm64 -->
+  <remove-project name="LineageOS/android_external_chromium-webview_prebuilt_x86" />
+  <remove-project name="LineageOS/android_external_chromium-webview_prebuilt_x86_64" />
 
   <!-- c7ltechn device tree + vendor tree (same monorepo, two checkout paths) -->
   <project path="device/samsung/c7ltechn" name="c7ltechn-los16" remote="c7ltechn" revision="main" />
