@@ -243,15 +243,35 @@ jobs:
             repo sync -c -j8 --no-tags --no-clone-bundle --force-sync 2>&1 | tail -40
           }
           df -h /tmp
-      - name: Patch framework (libbluetooth_jni both-multilib)
+      - name: Patch framework + toolchain
         run: |
+          # 1) libbluetooth_jni: build for both arches (32-bit APK variant)
           f="$WORK/packages/apps/Bluetooth/jni/Android.bp"
           if grep -q 'compile_multilib: "first"' "$f"; then
             sed -i 's/compile_multilib: "first"/compile_multilib: "both"/' "$f"
             echo "patched libbluetooth_jni -> both"
           else
-            echo "no patch needed"
+            echo "no bluetooth jni patch needed"
           fi
+          # 2) repair the 4.9 wrapper scripts in the repo-synced toolchain
+          #    (same issue as the standalone kernel job: 1.7KB wrapper scripts
+          #    named like the real compiler fail to exec)
+          cd "$WORK/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin"
+          for n in *; do
+            [ -L "$n" ] && continue
+            [ -f "$n" ] || continue
+            sz=$(stat -c%s "$n")
+            if [ "$sz" -lt 20000 ]; then
+              for cand in "real-$n" "$n-4.9.x" "$n-4.9"; do
+                if [ -f "$cand" ] && [ "$(stat -c%s "$cand")" -gt 20000 ]; then
+                  echo "repair: $n -> $cand"
+                  ln -sfn "$cand" "$n"
+                  break
+                fi
+              done
+            fi
+          done
+          cd "$WORK"
       - name: ccache cache
         uses: actions/cache@v4
         with:
