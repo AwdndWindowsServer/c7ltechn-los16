@@ -50,6 +50,11 @@ lunch lineage_c7ltechn-userdebug
 m bacon -j$(nproc)
 ```
 
+## Two paths to a bootable ROM
+
+1. **Full source build** (`m bacon`) — needs a 16GB+ machine (free GitHub runners are too small).
+2. **Same-SoC binary port** (no compile) — take a prebuilt msm8953 Android 9/10 ROM (e.g. mido/Redmi Note 4), swap in the C7 kernel (`boot.img` from CI artifacts) and C7 vendor blobs, repack. See `tools/port-rom.sh`. Base ROM goes in the `mido-base-rom` GitHub Release.
+
 ## Status / milestones
 
 - [x] M1 — CI pipeline + device tree + full vendor blobs + standalone **kernel build job**
