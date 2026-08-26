@@ -364,7 +364,9 @@ jobs:
           source build/envsetup.sh
           lunch lineage_c7ltechn-userdebug
           df -h /tmp | tail -1
-          m recoveryimage systemimage -j$(nproc) 2>&1 | tee /tmp/build.log | tail -40
+          # WITH_DEXPREOPT=false: skip dex2oat (big disk+time saver; first boot
+          # optimizes on-device instead). Needed to fit the 2-core runner.
+          m recoveryimage systemimage WITH_DEXPREOPT=false -j$(nproc) 2>&1 | tee /tmp/build.log | tail -40
       - name: Collect artifacts
         run: |
           cd "$WORK/out/target/product/c7ltechn"
