@@ -54,8 +54,16 @@ m bacon -j$(nproc)
 
 - [x] M1 — CI pipeline + device tree + full vendor blobs + standalone **kernel build job**
 - [x] M1b — **`Image.gz-dtb` kernel artifact green** (built from `lineageos_c7ltechn_defconfig`; fixes: 4.9 wrapper scripts, TRACE_INCLUDE_PATH, USB gadget -> AOSP configfs, set_ncm_ready)
-- [x] M2a — **`boot.img` artifact green** (ANDROID! magic + SEANDROIDENFORCE verified; kernel 12.4MB + ramdisk 1.8MB). ROM job builds bootimage first and uploads it early (standard 2-core runners time out on full `bacon`).
-- [ ] M2b — recovery.img + system.img green; boots to launcher (display bring-up, init)
+- [x] M2a — **`boot.img` artifact green** (ANDROID! magic + SEANDROIDENFORCE verified; kernel 12.4MB + ramdisk 1.8MB). ROM job builds bootimage first and uploads it early.
+- [ ] M2b — recovery.img + system.img green. **BLOCKED on free-tier runners**: the 2-core standard runner (7GB RAM / ~145GB disk, 6h cap) dies mid-framework-build (disk exhaustion) and cannot finish a full LOS16 build. The device tree itself is validated (3+ hours of clean building across runs; 13 pipeline issues fixed). Finish the build on a capable machine:
+  ```bash
+  repo init -u https://github.com/LineageOS/android.git -b lineage-16.0 --depth=1
+  mkdir -p .repo/local_manifests
+  cp <repo>/manifest/c7ltechn-16.0.xml .repo/local_manifests/
+  repo sync -c -j8 --no-tags
+  source build/envsetup.sh && lunch lineage_c7ltechn-userdebug
+  m bacon -j$(nproc)     # 16GB RAM / 8+ cores: ~1.5-3h
+  ```
 - [ ] M3 — RIL (calls/SMS/data, dual SIM), WiFi, Bluetooth, GPS
 - [ ] M4 — camera, fingerprint, NFC, audio tuning, sensors
 - [ ] M5 — SELinux enforcing, daily-usable hardening
