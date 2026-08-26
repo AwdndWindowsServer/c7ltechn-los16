@@ -2,9 +2,17 @@
 # LineageOS product makefile for Samsung Galaxy C7 (SM-C7000 / c7ltechn)
 #
 
+# Inherit from those products. Most specific first.
+$(call inherit-product, $(SRC_TARGET_DIR)/product/core_64_bit.mk)
+$(call inherit-product, $(SRC_TARGET_DIR)/product/full_base_telephony.mk)
+
+# Inherit from c7ltechn device
 $(call inherit-product, device/samsung/c7ltechn/device.mk)
 
-# Device identifier
+# Inherit some common LineageOS stuff.
+$(call inherit-product, vendor/lineage/config/common_full_phone.mk)
+
+# Device identifier. This must come after all inclusions
 PRODUCT_DEVICE := c7ltechn
 PRODUCT_NAME := lineage_c7ltechn
 PRODUCT_BRAND := samsung
