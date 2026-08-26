@@ -338,7 +338,7 @@ jobs:
           for f in drivers/video/msm/msm_dba/msm_dba_internal.h                    drivers/soc/qcom/tracer_pkt_private.h                    drivers/usb/gadget/function/f_midi.c                    drivers/net/ethernet/msm/rndis_ipa_trace.h; do
             if [ -f "$f" ]; then echo "OK  $f"; else echo "MISS $f"; fi
           done
-      - name: Build
+      - name: Build boot image (fastest flashable artifact)
         shell: bash
         run: |
           cd "$WORK"
@@ -348,7 +348,21 @@ jobs:
           ccache -M 20G
           source build/envsetup.sh
           lunch lineage_c7ltechn-userdebug
-          m "${{ github.event.inputs.build_target || 'bacon' }}" -j$(nproc) 2>&1 | tee /tmp/build.log | tail -60
+          m bootimage -j$(nproc) 2>&1 | tee /tmp/build-boot.log | tail -40
+      - name: Upload boot image (early)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: c7ltechn-boot-${{ github.run_number }}
+          path: /tmp/android/out/target/product/c7ltechn/boot.img
+          if-no-files-found: warn
+      - name: Build recovery + system images
+        shell: bash
+        run: |
+          cd "$WORK"
+          source build/envsetup.sh
+          lunch lineage_c7ltechn-userdebug
+          m recoveryimage systemimage -j$(nproc) 2>&1 | tee /tmp/build.log | tail -40
       - name: Collect artifacts
         run: |
           cd "$WORK/out/target/product/c7ltechn"
