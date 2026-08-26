@@ -19,12 +19,7 @@ on:
         default: 'bacon'
   push:
     branches: [ 'main' ]
-    paths:
-      - 'device/**'
-      - 'vendor/**'
-      - 'manifest/**'
-      - 'tools/**'
-      - '.github/workflows/build.yml'
+    # NOTE: device tree files live at the repo ROOT (see README) — any push builds
 
 jobs:
   kernel-build:
