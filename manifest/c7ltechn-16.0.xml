@@ -40,14 +40,12 @@
   <remove-project name="platform/prebuilts/libs/libedit" />
   <!--
     WebView prebuilts: the LOS16 manifest pins them at SHAs that a shallow
-    clone cannot fetch ('Cannot initialize work tree'). Re-declare arm/arm64
-    with clone-depth="0" (full clone) so the pinned SHAs resolve. The build
-    requires webview.apk; x86/x86_64 are not needed for this arm64 device.
+    clone cannot fetch, and the repo tool rejects clone-depth=0. They are
+    therefore excluded here and fetched manually at the pinned SHAs by the
+    CI sync step (git fetch with depth 1 at the pinned SHA). x86/x86_64 are not needed.
   -->
   <remove-project name="LineageOS/android_external_chromium-webview_prebuilt_arm" />
-  <project path="external/chromium-webview/prebuilt/arm" name="LineageOS/android_external_chromium-webview_prebuilt_arm" clone-depth="0" revision="b2639126d02b401ae8a8a7f3ca302633713a12e6" />
   <remove-project name="LineageOS/android_external_chromium-webview_prebuilt_arm64" />
-  <project path="external/chromium-webview/prebuilt/arm64" name="LineageOS/android_external_chromium-webview_prebuilt_arm64" clone-depth="0" revision="f6f994f9912b26d1dffd100f6de959f9dfd31414" />
   <remove-project name="LineageOS/android_external_chromium-webview_prebuilt_x86" />
   <remove-project name="LineageOS/android_external_chromium-webview_prebuilt_x86_64" />
 

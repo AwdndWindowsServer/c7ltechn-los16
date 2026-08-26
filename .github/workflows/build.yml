@@ -237,6 +237,20 @@ jobs:
             echo "sync attempt 1 failed, retrying..."
             repo sync -c -j8 --no-tags --no-clone-bundle --force-sync 2>&1 | tail -40
           }
+          # fetch webview prebuilts at their pinned SHAs (repo cannot shallow-clone them)
+          fetch_webview() {
+            arch="$1"; sha="$2"
+            dir="$WORK/external/chromium-webview/prebuilt/$arch"
+            mkdir -p "$dir" && cd "$dir"
+            git init -q
+            git remote add origin "https://github.com/LineageOS/android_external_chromium-webview_prebuilt_$arch.git"
+            git fetch --depth=1 origin "$sha" 2>&1 | tail -2
+            git checkout -q FETCH_HEAD
+            ls -la webview.apk 2>/dev/null || echo "WARN: no webview.apk for $arch"
+            cd "$WORK"
+          }
+          fetch_webview arm b2639126d02b401ae8a8a7f3ca302633713a12e6
+          fetch_webview arm64 f6f994f9912b26d1dffd100f6de959f9dfd31414
           df -h /tmp
       - name: Patch framework + toolchain
         run: |
